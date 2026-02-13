@@ -1,9 +1,12 @@
 use anchor_lang::prelude::*;
-use anchor_spl::token_interface::{Mint,TokenAccount, TokenInterface}; //We can use both older and newer
 //use anchor_spl::token::Mint older token program
 //use anchor_spl::Token_2022::Mint newer token program
 
-use crate::state::Escrow;
+
+use anchor_spl::{
+    associated_token::AssociatedToken,
+    token_interface::{transfer_checked, Mint, TokenAccount, TokenInterface, TransferChecked},
+};
 
 #[derive(Accounts)]
 #[instruction(seed: u64)]
@@ -43,7 +46,36 @@ pub struct Make<'info> {
     pub vault: InterfaceAccount<'info, TokenAccount>,
 
     pub associated_token_program: Program<'info, AssociatedToken>,
+   
     pub token_program: Interface<'info, TokenInterface>,
     pub system_program: Program<'info, System>,
 }
 
+impl<'info> Make<'info> {
+    pub fn init_escrow(&mut self, seed: u64, receive: u64, bumps: &MakeBumps) -> Result<()> {
+  // A alternative to simple self.escrow.bump = bumps.escrow 
+    self.escrow.set_inner(Escrow {
+        seed,
+        maker: self.maker.key(),
+        mint_a: self.mint_a.key(),
+        mint_b: self.mint_b.key(),
+        receive,
+            bump: bumps.escrow,
+    }) ;
+        Ok(())
+    }
+
+    pub fn deposit(&mut self, deposit: u64) -> Result<()> {
+        let tranfer_accounts = TransferChecked {
+            from: self.maker_ata_a.to_account_info(),
+             mint: self.mint_a.to_account_info(),
+             to: self.vault.to_account_info(),
+            authority: self.maker.to_account_info(),
+        };
+
+         let cpi_ctx = CpiContext::new(self.token_program.to_account_info(), tranfer_accounts);
+ 
+   
+     transfer_checked(cpi_ctx, deposit, self.mint_a.decimals)
+    }
+}
