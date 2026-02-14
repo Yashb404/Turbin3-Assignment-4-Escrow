@@ -62,13 +62,13 @@ impl<'info> Refund<'info> {
             authority: self.escrow.to_account_info(),
         };
 
-        let ctx = CpiContext::new_with_signer(
+        let cpi_ctx = CpiContext::new_with_signer(
             self.token_program.to_account_info(),
             transfer_accounts,
             signer_seeds,
         );
 
-        transfer_checked(ctx, self.vault.amount, self.mint_a.decimals)?;
+        transfer_checked(cpi_ctx, self.vault.amount, self.mint_a.decimals)?;
 
         let close_accounts = CloseAccount {
             account: self.vault.to_account_info(),
@@ -76,12 +76,12 @@ impl<'info> Refund<'info> {
             authority: self.escrow.to_account_info(),
         };
 
-        let ctx = CpiContext::new_with_signer(
+        let cpi_ctx_close = CpiContext::new_with_signer(
             self.token_program.to_account_info(),
             close_accounts,
             signer_seeds,
         );
 
-        close_account(ctx)
+        close_account(cpi_ctx_close)
     }
 }

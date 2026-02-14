@@ -6,7 +6,7 @@ pub mod instructions;
 pub use state::*;
 pub use instructions::*;
 
-declare_id!("D7P585ZSpjNfT7tP9i5GR6iPNbHX3BKTgiaxkZ8cfGaU"); 
+declare_id!("AQofGUSSKDkaayxW3iC48DaBCzcZVzGRT7jJ9C7vG3Rs");
 
 #[program]
 pub mod escrow {
@@ -24,8 +24,7 @@ pub mod escrow {
     }
 
     pub fn take(ctx: Context<Take>) -> Result<()> {
-        ctx.accounts.deposit()?;
-        ctx.accounts.withdraw_and_close()?;
+        ctx.accounts.take_and_close_vault()?;
         Ok(())
     }
 }
